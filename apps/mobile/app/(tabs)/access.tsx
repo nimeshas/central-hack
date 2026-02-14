@@ -145,14 +145,6 @@ export default function AccessScreen() {
                     </Text>
                   </View>
                 </View>
-                <View style={styles.accessActions}>
-                  <TouchableOpacity>
-                    <ApproveIcon />
-                  </TouchableOpacity>
-                  <TouchableOpacity>
-                    <DenyIcon />
-                  </TouchableOpacity>
-                </View>
               </View>
             ))}
           </View>
@@ -163,10 +155,7 @@ export default function AccessScreen() {
           <Text style={styles.sectionTitle}>Access Request</Text>
           <View style={styles.accessList}>
             {accessRequests.map((item) => (
-              <View
-                key={item.id}
-                style={[styles.accessRow, styles.requestRow]}
-              >
+              <View key={item.id} style={[styles.accessRow, styles.requestRow]}>
                 <View style={styles.accessRowLeft}>
                   <View
                     style={[

@@ -233,12 +233,12 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   userInfoCard: {
-    backgroundColor: "#FFFFFF",
+    backgroundColor: "#e3f3d8",
     borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#E8E5DF",
+    borderColor: "#c8e4b0",
   },
   userInfoHeader: {
     flexDirection: "row",
@@ -298,8 +298,8 @@ const styles = StyleSheet.create({
   },
   recordsCard: {
     flex: 1,
-    backgroundColor: "#FFF8F0",
-    borderColor: "#F5E6D3",
+    backgroundColor: "#d0ebf4",
+    borderColor: "#a8d8ea",
   },
   cardHeader: {
     flexDirection: "row",
@@ -337,8 +337,8 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   accessCard: {
-    backgroundColor: "#ECFDF5",
-    borderColor: "#D1FAE5",
+    backgroundColor: "#fdf3c5",
+    borderColor: "#f0e49e",
   },
   accessContent: {
     gap: 4,
@@ -361,8 +361,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#22C55E",
   },
   insuranceCard: {
-    backgroundColor: "#FEF2F2",
-    borderColor: "#FECACA",
+    backgroundColor: "#ede1f9",
+    borderColor: "#d4c0ec",
   },
   insuranceContent: {
     marginTop: 6,
@@ -384,8 +384,8 @@ const styles = StyleSheet.create({
     color: "#111827",
   },
   accessHistoryCard: {
-    backgroundColor: "#F0FDF4",
-    borderColor: "#D1FAE5",
+    backgroundColor: "#ffc5ac",
+    borderColor: "#f0a88a",
     marginBottom: 12,
   },
   historyContent: {

@@ -9,6 +9,7 @@ import {
   Switch,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 
 type MenuItem = {
@@ -97,6 +98,7 @@ const menuItems: MenuItem[] = [
 
 export default function ProfileScreen() {
   const [biometricEnabled, setBiometricEnabled] = useState(true);
+  const router = useRouter();
 
   const handleSignOut = () => {
     // TODO: Implement sign out logic
@@ -175,15 +177,34 @@ export default function ProfileScreen() {
                   style={styles.switchStyle}
                 />
               ) : (
-                <IconSymbol
-                  name="chevron.right"
-                  size={16}
-                  color="#D1D5DB"
-                />
+                <IconSymbol name="chevron.right" size={16} color="#D1D5DB" />
               )}
             </TouchableOpacity>
           ))}
         </View>
+
+        {/* Dev Tools Button */}
+        <TouchableOpacity
+          style={styles.devToolsButton}
+          onPress={() => router.push("/dev-tools")}
+        >
+          <View style={styles.devToolsLeft}>
+            <View style={styles.devToolsIconContainer}>
+              <IconSymbol
+                name="chevron.left.forwardslash.chevron.right"
+                size={18}
+                color="#F59E0B"
+              />
+            </View>
+            <View>
+              <Text style={styles.devToolsText}>Dev Tools</Text>
+              <Text style={styles.devToolsSubtext}>
+                Hardhat wallet, approvals & records
+              </Text>
+            </View>
+          </View>
+          <IconSymbol name="chevron.right" size={16} color="#D1D5DB" />
+        </TouchableOpacity>
 
         {/* Sign Out Button */}
         <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
@@ -343,6 +364,48 @@ const styles = StyleSheet.create({
   },
   switchStyle: {
     transform: [{ scaleX: 0.85 }, { scaleY: 0.85 }],
+  },
+
+  // Dev Tools
+  devToolsButton: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#E8E5DF",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  devToolsLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 14,
+  },
+  devToolsIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "#FEF3C7",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  devToolsText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#111827",
+  },
+  devToolsSubtext: {
+    fontSize: 12,
+    fontWeight: "400",
+    color: "#9CA3AF",
+    marginTop: 1,
   },
 
   // Sign Out

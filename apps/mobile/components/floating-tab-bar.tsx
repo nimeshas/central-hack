@@ -1,10 +1,5 @@
 import React from "react";
-import {
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  Platform,
-} from "react-native";
+import { View, TouchableOpacity, StyleSheet, Platform } from "react-native";
 import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import * as Haptics from "expo-haptics";
@@ -17,7 +12,11 @@ const TAB_ICONS: Record<string, string> = {
   profile: "person.fill",
 };
 
-export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+export function FloatingTabBar({
+  state,
+  descriptors,
+  navigation,
+}: BottomTabBarProps) {
   return (
     <View style={styles.wrapper} pointerEvents="box-none">
       <View style={styles.container}>
@@ -51,6 +50,7 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
           };
 
           if (isCenter) {
+            const centerIcon = isFocused ? "xmark" : iconName;
             return (
               <TouchableOpacity
                 key={route.key}
@@ -63,13 +63,13 @@ export function FloatingTabBar({ state, descriptors, navigation }: BottomTabBarP
                 style={styles.centerButtonOuter}
               >
                 <View style={styles.centerButton}>
-                  <IconSymbol name={iconName} size={26} color="#FFFFFF" />
+                  <IconSymbol name={centerIcon} size={26} color="#FFFFFF" />
                 </View>
               </TouchableOpacity>
             );
           }
 
-          const color = isFocused ? "#1F2937" : "#9CA3AF";
+          const color = isFocused ? "#FFFFFF" : "#BFBFBF";
 
           return (
             <TouchableOpacity
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#E3E0DA",
+    backgroundColor: "#7d7d7d",
     borderRadius: 40,
     height: 62,
     paddingHorizontal: 10,
@@ -126,13 +126,12 @@ const styles = StyleSheet.create({
     height: 62,
   },
   centerButton: {
-    width: 54,
-    height: 54,
-    borderRadius: 27,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: "#E53935",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: -18,
     shadowColor: "#E53935",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.35,
