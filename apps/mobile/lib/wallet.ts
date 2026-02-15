@@ -16,13 +16,13 @@ export type WalletContext = {
 };
 
 export function useDevWalletContext(): WalletContext {
-  const devProvider = useMemo(() => new JsonRpcProvider(rpcUrl), [rpcUrl]);
+  const devProvider = useMemo(() => new JsonRpcProvider(rpcUrl), []);
   const devSigner = useMemo(() => {
     if (!devPrivateKey) {
       return null;
     }
     return new Wallet(devPrivateKey, devProvider);
-  }, [devPrivateKey, devProvider]);
+  }, [devProvider]);
 
   return {
     mode: "dev",

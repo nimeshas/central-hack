@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   Text,
@@ -7,40 +7,52 @@ import {
   TouchableOpacity,
   StatusBar,
   Switch,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 import { IconSymbol } from "@/components/ui/icon-symbol";
+import { useDevWalletContext } from "@/lib/wallet";
+import { truncateAddress } from "@/lib/medicalRecord";
+import { loadProfile, type UserProfile } from "@/lib/profile-storage";
 
 type MenuItem = {
   id: string;
   label: string;
+  subtitle?: string;
   icon: string;
   iconColor: string;
   iconBgColor: string;
   type: "navigate" | "toggle";
+  route?: string;
 };
 
 const menuItems: MenuItem[] = [
   {
     id: "personal",
     label: "Personal Details",
+    subtitle: "Name, DOB, contact info",
     icon: "person.fill",
     iconColor: "#6366F1",
     iconBgColor: "#EEF2FF",
     type: "navigate",
+    route: "/personal-details",
   },
   {
     id: "health",
     label: "General Health Details",
+    subtitle: "Vitals, allergies, conditions",
     icon: "heart.fill",
     iconColor: "#E53935",
     iconBgColor: "#FEF2F2",
     type: "navigate",
+    route: "/health-details",
   },
   {
     id: "biometric",
     label: "Biometric Authentication",
+    subtitle: "Face ID / Fingerprint",
     icon: "faceid",
     iconColor: "#0EA5E9",
     iconBgColor: "#F0F9FF",
@@ -49,60 +61,113 @@ const menuItems: MenuItem[] = [
   {
     id: "insurance",
     label: "Active Insurance",
+    subtitle: "Policy and coverage details",
     icon: "checkmark.shield.fill",
     iconColor: "#22C55E",
     iconBgColor: "#F0FDF4",
     type: "navigate",
+    route: "/insurance",
   },
   {
     id: "immunization",
     label: "Immunization Record",
+    subtitle: "Vaccines and schedules",
     icon: "cross.case.fill",
     iconColor: "#F59E0B",
     iconBgColor: "#FFFBEB",
     type: "navigate",
+    route: "/immunization",
   },
   {
     id: "datasharing",
     label: "Data Sharing Permissions",
+    subtitle: "Control who sees your data",
     icon: "lock.shield.fill",
     iconColor: "#8B5CF6",
     iconBgColor: "#F5F3FF",
     type: "navigate",
+    route: "/data-sharing",
   },
   {
     id: "past",
-    label: "Past something",
+    label: "Past Visits",
+    subtitle: "Medical visit history",
     icon: "clock.fill",
     iconColor: "#6B7280",
     iconBgColor: "#F3F4F6",
     type: "navigate",
+    route: "/past-visits",
   },
   {
     id: "recovery",
     label: "Recovery Key Status",
+    subtitle: "Backup and recovery options",
     icon: "key.fill",
     iconColor: "#D97706",
     iconBgColor: "#FEF3C7",
     type: "navigate",
+    route: "/recovery-key",
   },
   {
     id: "help",
     label: "Help and Support",
+    subtitle: "FAQ, contact, feedback",
     icon: "questionmark.circle.fill",
     iconColor: "#0891B2",
     iconBgColor: "#ECFEFF",
     type: "navigate",
+    route: "/help-support",
   },
 ];
 
 export default function ProfileScreen() {
   const [biometricEnabled, setBiometricEnabled] = useState(true);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(true);
   const router = useRouter();
+  const { address, isConnected } = useDevWalletContext();
+
+  const fetchProfile = useCallback(async () => {
+    try {
+      setLoadingProfile(true);
+      const data = await loadProfile();
+      setProfile(data);
+    } catch {
+      // fallback handled by loadProfile
+    } finally {
+      setLoadingProfile(false);
+    }
+  }, []);
+
+  // Reload profile every time the screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+    }, [fetchProfile]),
+  );
 
   const handleSignOut = () => {
     // TODO: Implement sign out logic
   };
+
+  const handleMenuPress = (item: MenuItem) => {
+    if (item.type === "toggle") {
+      setBiometricEnabled(!biometricEnabled);
+      return;
+    }
+    if (item.route) {
+      router.push(item.route as any);
+    }
+  };
+
+  const displayName = profile?.fullName || "User";
+  const passportId = profile?.passportId || "—";
+  const initials = displayName
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -114,42 +179,92 @@ export default function ProfileScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backButton}>
-            <IconSymbol name="chevron.left" size={20} color="#374151" />
-          </TouchableOpacity>
+          <View style={{ width: 40 }} />
           <Text style={styles.headerTitle}>Profile</Text>
-          <View style={styles.backButton} />
+          <TouchableOpacity
+            style={styles.editHeaderButton}
+            onPress={() => router.push("/personal-details" as any)}
+          >
+            <IconSymbol name="pencil" size={16} color="#6B7280" />
+          </TouchableOpacity>
         </View>
 
         {/* Avatar Section */}
         <View style={styles.avatarSection}>
           <View style={styles.avatarContainer}>
             <View style={styles.avatar}>
-              <IconSymbol name="person.fill" size={44} color="#9CA3AF" />
+              {loadingProfile ? (
+                <ActivityIndicator size="small" color="#9CA3AF" />
+              ) : (
+                <Text style={styles.avatarText}>{initials}</Text>
+              )}
             </View>
-            <TouchableOpacity style={styles.editAvatarButton}>
+            <TouchableOpacity
+              style={styles.editAvatarButton}
+              onPress={() => router.push("/personal-details" as any)}
+            >
               <IconSymbol name="pencil" size={12} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
-          <Text style={styles.profileName}>Nimesha S</Text>
+          <Text style={styles.profileName}>{displayName}</Text>
           <View style={styles.passportIdBadge}>
             <Text style={styles.passportIdLabel}>PASSPORT ID</Text>
-            <Text style={styles.passportIdValue}> HP-9823-X</Text>
+            <Text style={styles.passportIdValue}> {passportId}</Text>
           </View>
+
+          {/* Wallet Address */}
+          {isConnected && address && (
+            <View style={styles.walletBadge}>
+              <View style={styles.walletDot} />
+              <Text style={styles.walletText}>{truncateAddress(address)}</Text>
+            </View>
+          )}
         </View>
+
+        {/* Quick Stats */}
+        {profile && (
+          <View style={styles.quickStats}>
+            <View style={styles.quickStatItem}>
+              <Text style={styles.quickStatValue}>
+                {profile.bloodGroup || "—"}
+              </Text>
+              <Text style={styles.quickStatLabel}>Blood</Text>
+            </View>
+            <View style={styles.quickStatDivider} />
+            <View style={styles.quickStatItem}>
+              <Text style={styles.quickStatValue}>
+                {profile.weight ? `${profile.weight}kg` : "—"}
+              </Text>
+              <Text style={styles.quickStatLabel}>Weight</Text>
+            </View>
+            <View style={styles.quickStatDivider} />
+            <View style={styles.quickStatItem}>
+              <Text style={styles.quickStatValue}>
+                {profile.height ? `${profile.height}cm` : "—"}
+              </Text>
+              <Text style={styles.quickStatLabel}>Height</Text>
+            </View>
+            <View style={styles.quickStatDivider} />
+            <View style={styles.quickStatItem}>
+              <Text style={styles.quickStatValue}>
+                {profile.insuranceStatus === "active" ? "Active" : "None"}
+              </Text>
+              <Text style={styles.quickStatLabel}>Insurance</Text>
+            </View>
+          </View>
+        )}
 
         {/* Menu Items */}
         <View style={styles.menuContainer}>
-          {menuItems.map((item) => (
+          {menuItems.map((item, index) => (
             <TouchableOpacity
               key={item.id}
-              style={styles.menuItem}
+              style={[
+                styles.menuItem,
+                index === menuItems.length - 1 && styles.menuItemLast,
+              ]}
               activeOpacity={0.6}
-              onPress={
-                item.type === "toggle"
-                  ? () => setBiometricEnabled(!biometricEnabled)
-                  : undefined
-              }
+              onPress={() => handleMenuPress(item)}
             >
               <View style={styles.menuItemLeft}>
                 <View
@@ -164,7 +279,12 @@ export default function ProfileScreen() {
                     color={item.iconColor}
                   />
                 </View>
-                <Text style={styles.menuItemLabel}>{item.label}</Text>
+                <View style={styles.menuItemTextContainer}>
+                  <Text style={styles.menuItemLabel}>{item.label}</Text>
+                  {item.subtitle && (
+                    <Text style={styles.menuItemSubtitle}>{item.subtitle}</Text>
+                  )}
+                </View>
               </View>
 
               {item.type === "toggle" ? (
@@ -237,7 +357,12 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 12,
   },
-  backButton: {
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#111827",
+  },
+  editHeaderButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -250,17 +375,12 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#111827",
-  },
 
   // Avatar Section
   avatarSection: {
     alignItems: "center",
     marginTop: 8,
-    marginBottom: 24,
+    marginBottom: 20,
   },
   avatarContainer: {
     position: "relative",
@@ -280,6 +400,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 4,
+  },
+  avatarText: {
+    fontSize: 32,
+    fontWeight: "700",
+    color: "#6B7280",
   },
   editAvatarButton: {
     position: "absolute",
@@ -319,6 +444,64 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#E53935",
   },
+  walletBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    marginTop: 8,
+    backgroundColor: "#F0FDF4",
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 16,
+  },
+  walletDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#22C55E",
+  },
+  walletText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#15803D",
+    fontFamily: "monospace",
+  },
+
+  // Quick Stats
+  quickStats: {
+    flexDirection: "row",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 8,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#E8E5DF",
+    alignItems: "center",
+    justifyContent: "space-around",
+  },
+  quickStatItem: {
+    flex: 1,
+    alignItems: "center",
+    gap: 3,
+  },
+  quickStatValue: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#111827",
+  },
+  quickStatLabel: {
+    fontSize: 10,
+    fontWeight: "600",
+    color: "#9CA3AF",
+    textTransform: "uppercase",
+    letterSpacing: 0.3,
+  },
+  quickStatDivider: {
+    width: 1,
+    height: 28,
+    backgroundColor: "#E5E7EB",
+  },
 
   // Menu
   menuContainer: {
@@ -343,6 +526,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#F3F4F6",
   },
+  menuItemLast: {
+    borderBottomWidth: 0,
+  },
   menuItemLeft: {
     flexDirection: "row",
     alignItems: "center",
@@ -356,11 +542,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  menuItemTextContainer: {
+    flex: 1,
+    gap: 1,
+  },
   menuItemLabel: {
     fontSize: 15,
     fontWeight: "500",
     color: "#111827",
-    flex: 1,
+  },
+  menuItemSubtitle: {
+    fontSize: 12,
+    fontWeight: "400",
+    color: "#9CA3AF",
   },
   switchStyle: {
     transform: [{ scaleX: 0.85 }, { scaleY: 0.85 }],

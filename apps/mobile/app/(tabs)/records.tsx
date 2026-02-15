@@ -11,11 +11,13 @@ import {
   RefreshControl,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useDevWalletContext } from "@/lib/wallet";
 import {
   getMedicalRecordContractWithSigner,
+  safeContractCall,
   type RecordItem,
 } from "@/lib/medicalRecord";
 
@@ -123,6 +125,7 @@ function truncateAddress(addr: string): string {
 }
 
 export default function RecordsScreen() {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const { address, isConnected, signer } = useDevWalletContext();
   const [records, setRecords] = useState<RecordItem[]>([]);
@@ -141,7 +144,9 @@ export default function RecordsScreen() {
         if (!silent) setLoading(true);
         setError(null);
         const contract = getMedicalRecordContractWithSigner(signer);
-        const data = (await contract.getRecords(address)) as RecordItem[];
+        const data = (await safeContractCall(signer, () =>
+          contract.getRecords(address),
+        )) as RecordItem[];
         setRecords(data);
         setHasLoaded(true);
       } catch (err) {
@@ -399,6 +404,15 @@ export default function RecordsScreen() {
           </View>
         </View>
       </ScrollView>
+
+      {/* Upload FAB */}
+      <TouchableOpacity
+        style={styles.fab}
+        activeOpacity={0.8}
+        onPress={() => router.push("/upload-record" as any)}
+      >
+        <IconSymbol name="plus" size={24} color="#FFFFFF" />
+      </TouchableOpacity>
     </SafeAreaView>
   );
 }
@@ -681,9 +695,27 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   categorySubtitle: {
-    fontSize: 11,
+    fontSize: 12,
     color: "#6B7280",
     fontWeight: "400",
-    lineHeight: 15,
+    lineHeight: 18,
+  },
+
+  // Upload FAB
+  fab: {
+    position: "absolute",
+    bottom: 24,
+    right: 20,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "#6366F1",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#6366F1",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35,
+    shadowRadius: 10,
+    elevation: 6,
   },
 });

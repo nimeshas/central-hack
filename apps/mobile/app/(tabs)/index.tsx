@@ -12,14 +12,17 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useFocusEffect } from "@react-navigation/native";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useDevWalletContext } from "@/lib/wallet";
 import {
   getMedicalRecordContractWithSigner,
+  safeContractCall,
   requestStatusLabel,
   type AccessRequest,
   type RecordItem,
 } from "@/lib/medicalRecord";
+import { loadProfile, type UserProfile } from "@/lib/profile-storage";
 
 function truncateAddress(addr: string): string {
   if (addr.length <= 12) return addr;
@@ -49,12 +52,43 @@ export default function DashboardScreen() {
   const [accessHistory, setAccessHistory] = useState<HistoryEntry[]>([]);
   const [records, setRecords] = useState<RecordItem[]>([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+
+  // Load profile data from storage every time the screen is focused
+  const fetchProfile = useCallback(async () => {
+    try {
+      const data = await loadProfile();
+      setProfile(data);
+    } catch {
+      // fallback handled by loadProfile defaults
+    }
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+    }, [fetchProfile]),
+  );
+
+  // Derived profile values with fallbacks
+  const displayName = profile?.fullName || "User";
+  const firstName = displayName.split(" ")[0];
+  const passportId = profile?.passportId || "—";
+  const bloodGroup = profile?.bloodGroup || "—";
+  const allergiesDisplay =
+    profile?.allergies && profile.allergies.length > 0
+      ? profile.allergies.join(", ")
+      : "None";
+  const insuranceStatus = profile?.insuranceStatus || "none";
+  const insuranceProvider = profile?.insuranceProvider || "—";
 
   const loadRecords = useCallback(async () => {
     if (!signer || !address) return;
     try {
       const contract = getMedicalRecordContractWithSigner(signer);
-      const data = (await contract.getRecords(address)) as RecordItem[];
+      const data = (await safeContractCall(signer, () =>
+        contract.getRecords(address),
+      )) as RecordItem[];
       setRecords(data);
     } catch {
       // silently fail on dashboard
@@ -66,7 +100,9 @@ export default function DashboardScreen() {
     try {
       setLoadingHistory(true);
       const contract = getMedicalRecordContractWithSigner(signer);
-      const data = (await contract.getRequests(address)) as AccessRequest[];
+      const data = (await safeContractCall(signer, () =>
+        contract.getRequests(address),
+      )) as AccessRequest[];
       setAccessHistory(data);
     } catch {
       // silently fail
@@ -154,7 +190,7 @@ export default function DashboardScreen() {
             </View>
             <View>
               <Text style={styles.welcomeText}>Welcome back,</Text>
-              <Text style={styles.welcomeName}>Hello, Nimesha!</Text>
+              <Text style={styles.welcomeName}>Hello, {firstName}!</Text>
             </View>
           </View>
           <TouchableOpacity style={styles.notificationButton}>
@@ -170,21 +206,21 @@ export default function DashboardScreen() {
           <View style={styles.userInfoHeader}>
             <View>
               <Text style={styles.userInfoLabel}>Name</Text>
-              <Text style={styles.userInfoName}>Nimesha S</Text>
+              <Text style={styles.userInfoName}>{displayName}</Text>
             </View>
             <View style={styles.idBadge}>
-              <Text style={styles.idBadgeText}>ID: #6767-NS</Text>
+              <Text style={styles.idBadgeText}>ID: {passportId}</Text>
             </View>
           </View>
 
           <View style={styles.userInfoRow}>
             <View style={styles.userInfoItem}>
               <Text style={styles.userInfoLabel}>Blood Group</Text>
-              <Text style={styles.userInfoValue}>O+</Text>
+              <Text style={styles.userInfoValue}>{bloodGroup}</Text>
             </View>
             <View style={styles.userInfoItem}>
               <Text style={styles.userInfoLabel}>Allergies</Text>
-              <Text style={styles.userInfoValue}>Dairy, Peanuts</Text>
+              <Text style={styles.userInfoValue}>{allergiesDisplay}</Text>
             </View>
           </View>
 
@@ -263,19 +299,31 @@ export default function DashboardScreen() {
             </View>
 
             {/* Insurance Card */}
-            <View style={[styles.infoCard, styles.insuranceCard]}>
+            <TouchableOpacity
+              style={[styles.infoCard, styles.insuranceCard]}
+              activeOpacity={0.7}
+              onPress={() => router.push("/insurance" as any)}
+            >
               <Text style={styles.cardTitle}>Insurance</Text>
               <View style={styles.insuranceContent}>
                 <View style={styles.insuranceStat}>
-                  <Text style={styles.insuranceLabel}>Pending Claims</Text>
-                  <Text style={styles.insuranceValue}>1</Text>
+                  <Text style={styles.insuranceLabel}>Status</Text>
+                  <Text style={styles.insuranceValue}>
+                    {insuranceStatus === "active"
+                      ? "Active"
+                      : insuranceStatus === "expired"
+                        ? "Expired"
+                        : "None"}
+                  </Text>
                 </View>
                 <View style={styles.insuranceStat}>
-                  <Text style={styles.insuranceLabel}>Approved</Text>
-                  <Text style={styles.insuranceValue}>2</Text>
+                  <Text style={styles.insuranceLabel}>Provider</Text>
+                  <Text style={styles.insuranceValue} numberOfLines={1}>
+                    {insuranceProvider}
+                  </Text>
                 </View>
               </View>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
 

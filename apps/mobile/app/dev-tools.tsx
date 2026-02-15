@@ -15,6 +15,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { useDevWalletContext } from "@/lib/wallet";
 import {
   getMedicalRecordContractWithSigner,
+  safeContractCall,
   requestStatusLabel,
   type AccessRequest,
   type RecordItem,
@@ -41,7 +42,9 @@ export default function DevToolsScreen() {
       setLoading(true);
       setStatus("Loading requests...");
       const contract = getMedicalRecordContractWithSigner(signer);
-      const data = (await contract.getRequests(address)) as AccessRequest[];
+      const data = (await safeContractCall(signer, () =>
+        contract.getRequests(address),
+      )) as AccessRequest[];
       setRequests(data);
       setStatus(null);
     } catch (error) {
@@ -85,7 +88,9 @@ export default function DevToolsScreen() {
       setLoading(true);
       setStatus("Loading records...");
       const contract = getMedicalRecordContractWithSigner(signer);
-      const data = (await contract.getRecords(address)) as RecordItem[];
+      const data = (await safeContractCall(signer, () =>
+        contract.getRecords(address),
+      )) as RecordItem[];
       setRecords(data);
       setStatus(null);
     } catch (error) {

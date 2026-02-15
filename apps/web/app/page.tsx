@@ -7,6 +7,7 @@ import { useAccount, useReadContract, useWriteContract } from "wagmi";
 import MedicalRecord from "../constants/MedicalRecord.json";
 import { MEDICAL_RECORD_ADDRESS } from "../constants/address";
 import styles from "./page.module.css";
+import { AiChat } from "./components/AiChat";
 
 type RecordItem = {
   ipfsHash: string;
@@ -3134,6 +3135,14 @@ export default function Home() {
           </button>
         </div>
       )}
+
+      <AiChat
+        records={records}
+        requests={requests}
+        patientAddress={patientAddress}
+        userAddress={address}
+        hasAccess={hasAccess}
+      />
     </div>
   );
 }
