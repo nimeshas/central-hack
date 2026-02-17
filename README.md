@@ -1,135 +1,117 @@
-# Turborepo starter
+# CareID
 
-This Turborepo starter is maintained by the Turborepo core team.
+CareID is a decentralised healthcare identity and records platform.
+It gives patients ownership of their medical data while allowing healthcare providers to request time-bound access through on-chain permissions. The system combines a provider web portal, a patient mobile app, a backend upload API, and smart contracts that enforce auditable access control.
 
-## Using this example
+## Project Structure
 
-Run the following command:
+This repository is a pnpm workspace managed with Turborepo.
 
-```sh
-npx create-turbo@latest
+### Applications (`apps/*`)
+
+- `apps/web`: Provider-facing Next.js portal for searching patients, requesting/reviewing record access, and uploading/viewing records.
+- `apps/mobile`: Patient-facing Expo app for managing identity, consent, and record-sharing from a phone.
+- `apps/backend`: Express service that handles file uploads and pushes files to Pinata/IPFS.
+- `apps/docs`: Next.js documentation app for project docs and internal reference pages.
+
+### Shared Packages (`packages/*`)
+
+- `packages/contracts`: Solidity contracts + Hardhat tooling for medical record metadata and access-permission logic.
+- `packages/ui`: Reusable UI components shared across frontend apps.
+- `packages/eslint-config`: Central ESLint presets used by workspace apps.
+- `packages/typescript-config`: Shared TypeScript configuration presets.
+
+## Tech Stack
+
+- Monorepo: Turborepo + pnpm workspaces
+- Web: Next.js + React
+- Mobile: Expo + React Native
+- Backend: Express
+- Contracts: Solidity + Hardhat
+- Storage: Pinata/IPFS
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js `>=18`
+- pnpm `9.x`
+
+### Install dependencies
+
+```bash
+pnpm install
 ```
 
-## What's inside?
+### Run everything for local development (Windows)
 
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+```bash
+pnpm dev:local
 ```
 
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+This script will:
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+1. Start a local Hardhat node
+2. Deploy contracts
+3. Sync contract address and ABI to apps
+4. Start backend, web, and mobile dev servers
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
+### Useful root commands
 
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+```bash
+pnpm dev          # Run turborepo dev pipeline
+pnpm build        # Build all apps/packages
+pnpm lint         # Run lint tasks across workspace
+pnpm check-types  # Run TypeScript checks across workspace
+pnpm sync-abi     # Sync contract ABI to dependent apps
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+## Contribution Guide
 
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
+### 1. Create a branch
 
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+Use a focused branch name, for example:
+
+```bash
+git checkout -b feat/patient-history-filter
 ```
 
-### Remote Caching
+### 2. Make your changes
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+Keep changes scoped to one concern (UI, contract logic, backend API, etc.).
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+### 3. Validate locally
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+Before opening a PR, run:
 
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
+```bash
+pnpm lint
+pnpm check-types
+pnpm build
 ```
 
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+If you changed smart contracts, also run:
 
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
+```bash
+pnpm --filter contracts exec hardhat test
+pnpm sync-abi
 ```
 
-## Useful Links
+### 4. Open a pull request
 
-Learn more about the power of Turborepo:
+Include:
 
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
+- What changed
+- Why it changed
+- Screenshots/videos for UI updates
+- Any migration or environment variable requirements
+
+### 5. PR review expectations
+
+- Keep PRs small and reviewable
+- Resolve all review comments before merge
+- Avoid mixing refactors with feature changes unless necessary
+
+## Contract Notes
+
+Contract-specific commands and deployment details are documented in `packages/contracts/README.md`.
